@@ -7,6 +7,7 @@ import passport from 'passport';
 import session from 'express-session';
 import flash from 'connect-flash';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 // Importing routes
 import registerRouter from './routes/auth/register.js';
@@ -58,6 +59,11 @@ app.use(passport.session());
 passport.serializeUser(userModel.serializeUser());
 passport.deserializeUser(userModel.deserializeUser());
 app.use(flash());
+
+//cores setup
+app.use(cors({
+    origin: 'https://desigram.vercel.app/'
+}));
 
 // Default setup
 app.use(logger('dev'));
