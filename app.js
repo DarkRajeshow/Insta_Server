@@ -62,7 +62,7 @@ app.use(flash());
 
 //cores setup
 app.use(cors({
-    origin: 'https://desigram.vercel.app/'
+    origin: 'https://desigram.vercel.app'
 }));
 
 // Default setup
