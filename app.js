@@ -6,6 +6,7 @@ import logger from 'morgan';
 import passport from 'passport';
 import session from 'express-session';
 import flash from 'connect-flash';
+import dotenv from 'dotenv';
 
 // Importing routes
 import registerRouter from './routes/auth/register.js';
@@ -38,7 +39,8 @@ import socketIo from './connection/socket.js';
 
 
 // Configuring environment variables
-require("dotenv").config();
+dotenv.config();
+
 const PORT = process.env.PORT;
 const app = express();
 
@@ -64,10 +66,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use("/api/uploads", express.static("public/uploads"));
 
-
-app.get("/", (req, res) => {
-    return res.send("server is running on port " + process.env.PORT);
-})
 
 // API routes
 // Auth
