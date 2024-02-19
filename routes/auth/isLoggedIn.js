@@ -3,6 +3,7 @@ const router = express.Router();
 
 /* GET users listing. */
 router.get('/', async (req, res) => {
+    console.log(`is authenticated ${req.isAuthenticated()}`);
     if (req.isAuthenticated()) {
         res.json({ success: true })
     }

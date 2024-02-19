@@ -16,6 +16,11 @@ router.post("/", (req, res, next) => {
                 return next(err);
             }
             res.cookie('userId', (req.user._id).toString());
+
+            console.log("req.user : " + req.user);
+            console.log(req.session);
+            console.log(req.cookies);
+
             res.json({ success: true, status: "Logged in successfully.", user: req.user });
         });
     })(req, res, next);

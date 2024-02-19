@@ -33,11 +33,10 @@ import messageRouter from './routes/data/message.js'
 
 
 // Importing models and utilities
-import userModel from './models/User.js';
 import connectToMongo from './utility/connectToMongo.js';
 import { createServer } from 'http'
 import socketIo from './connection/socket.js';
-
+import User from './models/User.js';
 
 // Configuring environment variables
 dotenv.config();
@@ -49,27 +48,45 @@ const app = express();
 connectToMongo();
 
 // Authentication setup
+app.use(cookieParser());
 app.use(session({
     resave: false,
     saveUninitialized: false,
     secret: "abcd"
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
-passport.serializeUser(userModel.serializeUser());
-passport.deserializeUser(userModel.deserializeUser());
+
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (error) {
+        done(error);
+    }
+});
+
+
+
 app.use(flash());
 
 //cores setup
+
 app.use(cors({
-    origin: 'https://desigram.vercel.app'
+    origin: process.env.CLIENT_URL,
+    credentials: true
 }));
 
 // Default setup
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use("/api/uploads", express.static("public/uploads"));
 
 
