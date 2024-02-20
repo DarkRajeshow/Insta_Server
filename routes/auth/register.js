@@ -15,7 +15,10 @@ router.post("/", async (req, res) => {
     await User.register(userData, req.body.password);
 
     passport.authenticate("local")(req, res, () => {
-      res.cookie('userId', req.user._id.toString());
+      // res.cookie('userId', req.user._id.toString());
+      res.cookie('userId', req.user._id.toString(), {
+        secure: true
+      });
       res.json({ success: true, status: "Your account has been created successfully.", user: req.user })
     });
   }

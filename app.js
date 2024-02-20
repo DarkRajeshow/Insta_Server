@@ -55,7 +55,13 @@ app.use(flash());
 app.use(session({
     resave: false,
     saveUninitialized: false,
-    secret: "abcd"
+    secret: process.env.SESSION_SECRET,
+    cookie: {
+        domain: ".vercel.app",
+        httpOnly: false,
+        secure: true, // Set secure to true for HTTPS-only cookies
+        sameSite: 'strict' // Enforce same-site policy for added security
+    }
 }));
 
 app.use(passport.initialize());

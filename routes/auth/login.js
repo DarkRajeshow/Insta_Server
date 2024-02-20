@@ -15,7 +15,11 @@ router.post("/", (req, res, next) => {
             if (err) {
                 return next(err);
             }
-            res.cookie('userId', (req.user._id).toString());
+            // res.cookie('userId', (req.user._id).toString());
+
+            res.cookie('userId', (req.user._id).toString(), {
+                secure: true
+            });
 
             console.log("req.user : " + req.user);
             console.log(req.session);
