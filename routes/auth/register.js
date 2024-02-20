@@ -1,6 +1,6 @@
 import express from 'express'
 import passport from 'passport';
-import localStrategy from 'passport-local' 
+import localStrategy from 'passport-local'
 import User from '../../models/User.js';
 
 passport.use(new localStrategy(User.authenticate()))

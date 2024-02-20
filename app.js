@@ -49,6 +49,9 @@ connectToMongo();
 
 // Authentication setup
 app.use(cookieParser());
+
+app.use(flash());
+
 app.use(session({
     resave: false,
     saveUninitialized: false,
@@ -74,12 +77,10 @@ passport.deserializeUser(async (id, done) => {
 
 
 
-app.use(flash());
-
 //cores setup
 
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL, 'http://localhost:5173'],
     credentials: true
 }));
 
@@ -133,8 +134,6 @@ app.use(function (err, req, res, next) {
         status: err.message || 'Internal Server Error'
     });
 });
-
-
 
 const httpServer = createServer(app)
 
