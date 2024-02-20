@@ -52,17 +52,22 @@ app.use(cookieParser());
 
 app.use(flash());
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(session({
     resave: false,
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET,
     cookie: {
-        domain: ".vercel.app",
-        httpOnly: false,
-        secure: true, // Set secure to true for HTTPS-only cookies
         sameSite: 'strict' // Enforce same-site policy for added security
     }
 }));
+
+if (isProduction) {
+    sessionConfig.cookie.secure = true; // Set secure to true for HTTPS-only cookies
+    sessionConfig.cookie.domain = ".vercel.app"; // Set domain for production environment
+}
+
 
 app.use(passport.initialize());
 app.use(passport.session());
