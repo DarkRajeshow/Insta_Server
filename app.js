@@ -62,10 +62,11 @@ app.use(session({
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET,
     store: store,
+    proxy: true,
     cookie: {
         domain: cookieDomain,
         secure: isProduction,
-        sameSite: 'strict'
+        sameSite: isProduction ? 'none' : 'strict'
     }
 }));
 
@@ -144,12 +145,16 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const httpServer = createServer(app)
+// const httpServer = createServer(app)
 
-socketIo(httpServer);
+// socketIo(httpServer);
 
-// Starting the server
-httpServer.listen(PORT, () => {
+// // Starting the server
+// // httpServer.listen(PORT, () => {
+// //     console.log("Server is running : " + PORT);
+// // });
+
+app.listen(PORT, () => {
     console.log("Server is running : " + PORT);
 });
 
