@@ -9,6 +9,7 @@ import flash from 'connect-flash';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
+
 // Importing routes
 import registerRouter from './routes/auth/register.js';
 import loginRouter from './routes/auth/login.js';
@@ -37,6 +38,7 @@ import connectToMongo from './utility/connectToMongo.js';
 import { createServer } from 'http'
 import socketIo from './connection/socket.js';
 import User from './models/User.js';
+import store from './connection/sessionStore.js';
 
 // Configuring environment variables
 dotenv.config();
@@ -59,6 +61,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET,
+    store: store,
     cookie: {
         domain: cookieDomain,
         secure: isProduction,
@@ -85,10 +88,11 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
+console.log(process.env.CLIENT_URL);
 
 //cores setup
 app.use(cors({
-    origin: [process.env.CLIENT_URL, 'http://localhost:5173'],
+    origin: process.env.CLIENT_URL,
     credentials: true
 }));
 
@@ -97,6 +101,18 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/api/uploads", express.static("public/uploads"));
+
+
+
+if (isProduction) {
+    const clientBuildDirectory = process.env.CLIENT_URL + '/build';
+    app.use(express.static(clientBuildDirectory));
+    app.get('*', (req, res) => {
+        res.redirect(`${clientBuildDirectory}/index.html`);
+    });
+} else {
+    console.log('Running in development mode...');
+}
 
 
 // API routes
