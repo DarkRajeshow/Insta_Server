@@ -55,7 +55,7 @@ app.use(cookieParser());
 app.use(flash());
 
 const isProduction = process.env.NODE_ENV === 'production';
-const cookieDomain = isProduction ? process.env.CLIENT_DOMAIN ? `.${process.env.CLIENT_DOMAIN}` : '' : 'localhost';
+const cookieDomain = isProduction ? process.env.CLIENT_DOMAIN ? `${process.env.CLIENT_DOMAIN}` : '' : 'localhost';
 
 app.use(session({
     resave: false,
@@ -65,7 +65,7 @@ app.use(session({
     cookie: {
         domain: cookieDomain,
         secure: isProduction,
-        sameSite: 'strict' // Enforce same-site policy for added security
+        sameSite: 'strict'
     }
 }));
 
@@ -87,9 +87,6 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
-
-console.log(process.env.CLIENT_URL);
-
 //cores setup
 app.use(cors({
     origin: process.env.CLIENT_URL,
@@ -101,18 +98,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/api/uploads", express.static("public/uploads"));
-
-
-
-if (isProduction) {
-    const clientBuildDirectory = process.env.CLIENT_URL + '/dist';
-    app.use(express.static(clientBuildDirectory));
-    app.get('*', (req, res) => {
-        res.redirect(`${clientBuildDirectory}/index.html`);
-    });
-} else {
-    console.log('Running in development mode...');
-}
 
 
 // API routes
