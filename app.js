@@ -53,20 +53,18 @@ app.use(cookieParser());
 app.use(flash());
 
 const isProduction = process.env.NODE_ENV === 'production';
+const cookieDomain = isProduction ? process.env.CLIENT_DOMAIN ? `.${process.env.CLIENT_DOMAIN}` : '' : 'localhost';
 
 app.use(session({
     resave: false,
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET,
     cookie: {
+        domain: cookieDomain,
+        secure: isProduction,
         sameSite: 'strict' // Enforce same-site policy for added security
     }
 }));
-
-if (isProduction) {
-    sessionConfig.cookie.secure = true; // Set secure to true for HTTPS-only cookies
-    sessionConfig.cookie.domain = ".vercel.app"; // Set domain for production environment
-}
 
 
 app.use(passport.initialize());
@@ -89,7 +87,6 @@ passport.deserializeUser(async (id, done) => {
 
 
 //cores setup
-
 app.use(cors({
     origin: [process.env.CLIENT_URL, 'http://localhost:5173'],
     credentials: true
