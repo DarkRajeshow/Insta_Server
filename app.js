@@ -105,7 +105,7 @@ app.use("/api/uploads", express.static("public/uploads"));
 
 
 if (isProduction) {
-    const clientBuildDirectory = process.env.CLIENT_URL + '/build';
+    const clientBuildDirectory = process.env.CLIENT_URL + '/dist';
     app.use(express.static(clientBuildDirectory));
     app.get('*', (req, res) => {
         res.redirect(`${clientBuildDirectory}/index.html`);
