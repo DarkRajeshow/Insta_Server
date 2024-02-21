@@ -1,7 +1,7 @@
 import express from 'express'
 import passport from 'passport';
 import localStrategy from 'passport-local'
-import User from '../../models/User.js';
+import User from '../models/User.js';
 
 passport.use(new localStrategy(User.authenticate()))
 
@@ -16,9 +16,7 @@ router.post("/", async (req, res) => {
 
     passport.authenticate("local")(req, res, () => {
       // res.cookie('userId', req.user._id.toString());
-      res.cookie('userId', req.user._id.toString(), {
-        secure: true
-      });
+      res.cookie('userId', req.user._id.toString());
       res.json({ success: true, status: "Your account has been created successfully.", user: req.user })
     });
   }

@@ -7,14 +7,14 @@ import session from 'express-session';
 import flash from 'connect-flash';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { initializeSession, serializeUser, isAuthenticated, isLoggedIn, loginUser, logoutUser, registerUser } from './routes/auth/auth.js';
+import { initializeSession, serializeUser, isAuthenticated, loginUser, logoutUser } from './auth.js';
 
 
 // Importing routes
-// import registerRouter from './routes/auth/register.js';
-// import loginRouter from './routes/auth/login.js';
-// import isLoggedIn from './routes/auth/isLoggedIn.js';
-// import logoutRouter from './routes/auth/logout.js';
+import registerRouter from './routes/auth/register.js';
+import loginRouter from './routes/auth/login.js';
+import isLoggedIn from './routes/auth/isLoggedIn.js';
+import logoutRouter from './routes/auth/logout.js';
 import uploadRouter from './routes/actions/upload.js';
 import likeRouter from './routes/actions/like.js';
 import toggleFollowRouter from './routes/actions/toggleFollow.js';
@@ -50,7 +50,7 @@ connectToMongo();
 
 // Authentication setup
 app.use(cookieParser());
-app.use(isAuthenticated);
+
 app.use(flash());
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -89,16 +89,10 @@ app.use("/api/uploads", express.static("public/uploads"));
 
 // API routes
 // Auth
-// app.use('/api/login', loginUser);
-// app.use('/api/register', registerUser);
-// app.use('/api/logout', logoutUser);
-// app.use('/api/isloggedin', isLoggedIn);
-
-
-app.post('/api/login', loginUser);
-app.post('/api/register', registerUser);
-app.get('/api/logout', logoutUser);
-app.get('/api/isloggedin', isLoggedIn);
+app.use('/api/login', loginUser);
+app.use('/api/register', );
+app.use('/api/logout', logoutUser);
+app.use('/api/isloggedin', isAuthenticated);
 
 // User actions
 app.use('/api/upload', uploadRouter);
