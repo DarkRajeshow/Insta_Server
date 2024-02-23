@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import plm from 'passport-local-mongoose';
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -99,8 +98,6 @@ userSchema.set('toJSON', { virtuals: true });
 
 // Ensure virtuals are included in Object output (e.g., res.send)
 userSchema.set('toObject', { virtuals: true });
-
-userSchema.plugin(plm);
 
 const User = mongoose.models.User || mongoose.model('User', userSchema)
 
