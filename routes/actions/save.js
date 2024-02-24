@@ -12,7 +12,6 @@ router.put('/', async function (req, res) {
 
     try {
         const { postId } = req.body;
-        console.log(postId);
         const userId = req.user._id;
         const post = await Post.findById(postId);
         const userSaved = post.saved.indexOf(userId) >= 0;

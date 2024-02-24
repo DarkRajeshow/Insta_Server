@@ -81,11 +81,8 @@ router.delete('/:commentId', async (req, res) => {
                     });
 
                     await Comment.findByIdAndDelete(commentId);
-
-                    console.log(true);
                     res.json({ success: true, status: 'Comment deleted.' });
                 } else {
-                    console.log(false);
                     res.json({ success: false, status: 'You are not authorized to delete this comment.' });
                 }
             } else {

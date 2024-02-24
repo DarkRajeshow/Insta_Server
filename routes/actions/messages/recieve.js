@@ -7,8 +7,6 @@ const router = express.Router();
 // Route for receiving a message
 router.put('/receive', async (req, res) => {
 
-    console.log(req.body);
-    
     if (!req.isAuthenticated()) {
         return res.json({ success: false, status: "Login to continue." });
     }

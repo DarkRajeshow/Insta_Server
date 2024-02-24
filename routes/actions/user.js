@@ -8,11 +8,6 @@ router.get('/', async (req, res) => {
     const full = req.query.full;
 
     try {
-        console.log("req.user : " + req.user);
-        console.log(req.session);
-        console.log(req.cookies);
-
-
         if (req.isAuthenticated()) {
             if (full === "true") {
                 const user = await User.findById(req.user._id).populate("posts");

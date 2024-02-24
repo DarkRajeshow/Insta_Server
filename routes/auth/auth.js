@@ -24,7 +24,7 @@ export async function serializeUser(req, res, next) {
 }
 
 export function isLoggedIn(req, res, next) {
-    if (req.user._id) {
+    if (req.user) {
         return res.json({ success: true });
     }
     res.json({ success: false, status: "Login to continue" });
@@ -61,7 +61,6 @@ export async function registerUser(req, res, next) {
 
         req.session.user = { _id: user._id };
         req.user = user;
-        console.log(req.user);
 
         res.cookie('userId', req.user._id.toString());
 
@@ -85,9 +84,6 @@ export async function loginUser(req, res, next) {
         }
 
         const passwordMatch = await comparePasswords(password, user.password);
-        console.log(password);
-        console.log(user.password);
-        console.log(passwordMatch);
 
         if (!passwordMatch) {
             return res.json({ success: false, status: 'Invalid email or password' });
@@ -95,8 +91,7 @@ export async function loginUser(req, res, next) {
 
         req.session.user = { _id: user._id };
         req.user = user;
-        console.log(req.user);
-
+        
         res.cookie('userId', req.user._id.toString());
         res.json({ success: true, status: 'Login successful', user });
     } catch (error) {
