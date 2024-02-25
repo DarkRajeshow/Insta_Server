@@ -1,4 +1,5 @@
 
+import mongoose from 'mongoose';
 import User from '../../models/User.js';
 import { hashPassword, comparePasswords } from './bcrypt.js';
 
@@ -78,7 +79,7 @@ export async function loginUser(req, res, next) {
 
     try {
         const user = await User.findOne({ username });
-        
+
         if (!user) {
             return res.json({ success: false, status: 'Invalid email or password' });
         }
@@ -91,7 +92,7 @@ export async function loginUser(req, res, next) {
 
         req.session.user = { _id: user._id };
         req.user = user;
-        
+
         res.cookie('userId', req.user._id.toString());
         res.json({ success: true, status: 'Login successful', user });
     } catch (error) {
@@ -101,7 +102,12 @@ export async function loginUser(req, res, next) {
 }
 
 // Route handler for user logout
-export function logoutUser(req, res, next) {
+export async function logoutUser(req, res, next) {
+
+    // Remove the session document from the database
+    const sessionId = req.sessionID;
+    await mongoose.connection.collection('sessions').deleteOne({ session_id: sessionId });
+
     req.session.destroy((err) => {
         if (err) {
             console.error('Error destroying session:', err);

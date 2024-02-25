@@ -1,7 +1,5 @@
 import session from 'express-session';
 import MongoDBSessionStore from 'connect-mongodb-session';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const MongoDBStore = MongoDBSessionStore(session);
 
