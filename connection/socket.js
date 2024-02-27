@@ -11,10 +11,8 @@ export default function socketIo(server) {
     });
 
     io.on('connection', (socket) => {
-        console.log("Connected " + socket.id);
         socket.on("join_room", (userId) => {
             socket.join(userId);
-            socket.emit("joined", `${userId} room joined successfully`)
         });
 
         socket.on("new_message", (messageContent) => {

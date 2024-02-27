@@ -68,6 +68,12 @@ const userSchema = new mongoose.Schema({
             ref: 'Conversation',
         },
     ],
+    notification: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Notification',
+        },
+    ],
 });
 
 // Virtual for calculating time passed since user creation
