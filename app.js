@@ -1,20 +1,12 @@
 // Importing modules
 import createError from 'http-errors';
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import session from 'express-session';
-import flash from 'connect-flash';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { initializeSession, serializeUser, isAuthenticated, isLoggedIn, loginUser, logoutUser, registerUser } from './routes/auth/auth.js';
-
+import { isAuthenticated, isLoggedIn, loginUser, logoutUser, registerUser, getUserId } from './routes/auth/auth.js';
 
 // Importing routes
-// import registerRouter from './routes/auth/register.js';
-// import loginRouter from './routes/auth/login.js';
-// import isLoggedIn from './routes/auth/isLoggedIn.js';
-// import logoutRouter from './routes/auth/logout.js';
 import uploadRouter from './routes/actions/upload.js';
 import likeRouter from './routes/actions/like.js';
 import toggleFollowRouter from './routes/actions/toggleFollow.js';
@@ -31,13 +23,15 @@ import followingRouter from './routes/query/following.js';
 import searchRouter from './routes/query/search.js';
 import exploreRouter from './routes/data/explore.js'
 import messageRouter from './routes/data/message.js'
+import notificationRouter from './routes/notification/notification.js'
+import specialRouter from './routes/special.js'
 
 
 // Importing models and utilities
 import connectToMongo from './utility/connectToMongo.js';
 import { createServer } from 'http'
 import socketIo from './connection/socket.js';
-import store from './connection/sessionStore.js';
+import cookieParser from 'cookie-parser';
 
 // Configuring environment variables
 dotenv.config();
@@ -51,30 +45,8 @@ connectToMongo();
 // Authentication setup
 app.use(cookieParser());
 app.use(isAuthenticated);
-app.use(flash());
 
-const isProduction = process.env.NODE_ENV === 'production';
-const cookieDomain = isProduction ? process.env.CLIENT_DOMAIN ? `${process.env.CLIENT_DOMAIN}` : '' : 'localhost';
-
-app.use(session({
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.SESSION_SECRET,
-    store: store,
-    proxy: true,
-    cookie: {
-        domain: cookieDomain,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'strict'
-    }
-}));
- 
-
-app.use(initializeSession);
-app.use(serializeUser);
-
-
-//cores setup
+// cores setup
 app.use(cors({
     origin: process.env.CLIENT_URL,
     credentials: true
@@ -86,19 +58,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/api/uploads", express.static("public/uploads"));
 
-
 // API routes
 // Auth
-// app.use('/api/login', loginUser);
-// app.use('/api/register', registerUser);
-// app.use('/api/logout', logoutUser);
-// app.use('/api/isloggedin', isLoggedIn);
-
-
 app.post('/api/login', loginUser);
 app.post('/api/register', registerUser);
 app.get('/api/logout', logoutUser);
 app.get('/api/isloggedin', isLoggedIn);
+app.get('/api/auth/userid', getUserId);
 
 // User actions
 app.use('/api/upload', uploadRouter);
@@ -121,6 +87,12 @@ app.use("/api/posts", postRouter);
 app.use("/api/followers", followersRouter);
 app.use("/api/following", followingRouter);
 app.use("/api/search", searchRouter);
+
+// notifications
+app.use("/api/notifications", notificationRouter);
+
+// special queries
+app.use("/api/special", specialRouter);
 
 // Error handling
 app.use(function (req, res, next) {

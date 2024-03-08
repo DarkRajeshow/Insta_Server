@@ -1,43 +1,7 @@
-
-import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import { hashPassword, comparePasswords } from './bcrypt.js';
-
-export function initializeSession(req, res, next) {
-    if (!req.session.user) {
-        req.session.user = {};
-    }
-    next();
-}
-
-export async function serializeUser(req, res, next) {
-    if (req.session.user && req.session.user._id) {
-        try {
-            const user = await User.findById(req.session.user._id);
-            if (user) {
-                req.user = user;
-            }
-        } catch (error) {
-            console.error('Error deserializing user:', error);
-        }
-    }
-    next();
-}
-
-export function isLoggedIn(req, res, next) {
-    if (req.user) {
-        return res.json({ success: true });
-    }
-    res.json({ success: false, status: "Login to continue" });
-}
-
-export function isAuthenticated(req, res, next) {
-    req.isAuthenticated = () => {
-        return req.user !== undefined;
-    };
-    next();
-}
-
+import { stringify } from 'uuid';
 
 export async function registerUser(req, res, next) {
     const { email, password, username, name, gender } = req.body;
@@ -45,7 +9,7 @@ export async function registerUser(req, res, next) {
     try {
         let user = await User.findOne({ email });
         if (user) {
-            return res.json({ success: true, message: 'User already exists' });
+            return res.json({ success: false, message: 'User already exists' });
         }
 
         const hashedPassword = await hashPassword(password);
@@ -60,20 +24,17 @@ export async function registerUser(req, res, next) {
 
         await user.save();
 
-        req.session.user = { _id: user._id };
-        req.user = user;
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.cookie('userId', req.user._id.toString());
-
-        res.json({ status: 'User registered and logged in successfully', user, success: true });
+        req.userId = user._id;
+        res.cookie('jwt', token, { httpOnly: true });
+        res.json({ success: true, status: 'User registered and logged in successfully', user });
     } catch (error) {
         console.error('Error registering user:', error);
         res.json({ success: false, status: 'Internal Server Error' });
     }
 }
 
-
-// Route handler for user login
 export async function loginUser(req, res, next) {
     const { username, password } = req.body;
 
@@ -81,19 +42,22 @@ export async function loginUser(req, res, next) {
         const user = await User.findOne({ username });
 
         if (!user) {
-            return res.json({ success: false, status: 'Invalid email or password' });
+            return res.json({ success: false, status: 'Invalid username or password' });
         }
 
         const passwordMatch = await comparePasswords(password, user.password);
 
         if (!passwordMatch) {
-            return res.json({ success: false, status: 'Invalid email or password' });
+            return res.json({ success: false, status: 'Invalid username or password' });
         }
 
-        req.session.user = { _id: user._id };
-        req.user = user;
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.cookie('userId', req.user._id.toString());
+        //small session to store userId 
+        req.userId = user._id.toString();
+        console.log(req.userId)
+        console.log(user._id)
+        res.cookie('jwt', token, { httpOnly: true });
         res.json({ success: true, status: 'Login successful', user });
     } catch (error) {
         console.error('Error logging in:', error);
@@ -101,24 +65,57 @@ export async function loginUser(req, res, next) {
     }
 }
 
-// Route handler for user logout
 export async function logoutUser(req, res, next) {
+    res.clearCookie('jwt');
+    delete req.userId;
+    res.json({ success: true, status: 'Logged out successfully.' });
+}
 
-    // Remove the session document from the database
-    const sessionId = req.sessionID;
-    await mongoose.connection.collection('sessions').deleteOne({ session_id: sessionId });
-
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Error destroying session:', err);
-            return res.json({ success: false, status: "Something went wrong." });
+export function isAuthenticated(req, res, next) {
+    try {
+        const jwtCookie = req.cookies.jwt;
+        if (!jwtCookie) {
+            req.isAuthenticated = () => false; // No JWT cookie present
+        } else {
+            const decodedToken = jwt.verify(jwtCookie, process.env.JWT_SECRET);
+            req.userId = decodedToken.userId;
+            req.isAuthenticated = () => true; // JWT cookie present and valid
         }
-
-        res.user = undefined;
-        res.clearCookie('userId');
-        res.clearCookie('connect.sid'); // Clear session cookie
-        res.json({ success: true, status: "Logged out successfully." });
-    });
+    } catch (error) {
+        console.error('Error decoding or verifying JWT token:', error);
+        req.isAuthenticated = () => false; // Error decoding or verifying JWT token
+    }
+    next();
 }
 
 
+export function isLoggedIn(req, res, next) {
+    try {
+        const isAuthenticated = req.isAuthenticated();
+        if (isAuthenticated) {
+            return res.json({ success: true });
+        } else {
+            return res.json({ success: false, status: "Login to continue." });
+        }
+    } catch (error) {
+        return res.json({ success: false, status: "Internal server error" });
+    }
+}
+
+export function getUserId(req, res) {
+    const jwtCookie = req.cookies.jwt;
+    if (!jwtCookie) {
+        return res.json({ success: false, status: "Login to continue." });
+    }
+
+    try {
+        const decodedToken = jwt.verify(jwtCookie, process.env.JWT_SECRET);
+
+        const userId = decodedToken.userId;
+
+        res.json({ success: true, userId });
+    } catch (error) {
+        console.error('Error decoding or verifying JWT token:', error);
+        res.json({ success: false, status: 'Internal Server Error' });
+    }
+}

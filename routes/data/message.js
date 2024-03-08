@@ -1,22 +1,16 @@
 import express from 'express';
 import User from '../../models/User.js';
 import { Message, Conversation } from '../../models/Message.js';
-// import messageSendRouter from '../actions/messages/send.js'
-// import messageReceiveRouter from '../actions/messages/recieve.js'
 
 const router = express.Router();
 
-// router.use("/send", messageSendRouter)
-// router.use("/recieve", messageReceiveRouter)
-
-
 router.get('/:chatUser', async (req, res) => {
-    if (!req.isAuthenticated()) {
-        return res.json({ success: false, status: "Login to continue." });
-    }
-
     try {
-        const loggedUserId = req.user._id;
+        if (!req.isAuthenticated()) {
+            return res.json({ success: false, status: "Login to continue." });
+        }
+
+        const loggedUserId = req.userId;
         const chatUserId = req.params.chatUser;
 
         // Check if the logged-in user exists
@@ -52,13 +46,47 @@ router.get('/:chatUser', async (req, res) => {
 });
 
 
-router.put('/save', async (req, res) => {
-    if (!req.isAuthenticated()) {
-        return res.json({ success: false, status: "Login to continue." });
-    }
-
+router.get('/unread/:userId', async (req, res) => {
     try {
-        const loggedUserId = req.user._id;
+        const userId = req.params.userId;
+
+        const messages = await Message.find({
+            receiver: userId,
+            read: false
+        }, {
+            _id: true
+        });
+
+        res.json({ success: true, unReadMessagesCount: messages.length });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, status: "Something went wrong." });
+    }
+});
+
+
+router.put('/read', async (req, res) => {
+    try {
+        const { messageId } = req.body;
+
+        await Message.findByIdAndUpdate(messageId, {
+            read: true
+        })
+        res.json({ success: true, message: "Message marked as read." });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, status: "Something went wrong." });
+    }
+});
+
+router.put('/save', async (req, res) => {
+    try {
+        if (!req.isAuthenticated()) {
+            return res.json({ success: false, status: "Login to continue." });
+        }
+
+        const loggedUserId = req.userId;
         const { sender, receiver, content } = req.body;
 
         const newMessage = new Message({
@@ -74,7 +102,7 @@ router.put('/save', async (req, res) => {
         const receiverData = await User.findById(loggedUserId);
 
         if (!senderData || !receiverData) {
-            return res.json({ success: false, status: "Eeither logged sender or receiver not found." });
+            return res.json({ success: false, status: "Either logged sender or receiver not found." });
         }
 
         // Check if there is an existing conversation between the sender and the receiver

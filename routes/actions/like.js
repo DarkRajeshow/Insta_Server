@@ -1,21 +1,31 @@
-import express from 'express'
+import express from 'express';
+import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
 
 const router = express.Router();
 
-/* GET users listing. */
+/* PUT to like/unlike a post */
 router.put('/', async function (req, res) {
-
+    // Check if the request is authenticated with JWT
     if (!req.isAuthenticated()) {
-        res.json({ success: false, status: "To add the post, you must log in." })
+        return res.status(401).json({ success: false, status: "To add the post, you must log in." });
     }
 
     try {
+        // Extract userId from JWT payload
+        const userId = req.userId;
         const { postId } = req.body;
-        const userId = req.user._id;
+
+        // Find the post by postId
         const post = await Post.findById(postId);
-        const userLiked = post.likes.indexOf(userId) >= 0;
+        
+        if (!post) {
+            return res.status(404).json({ success: false, status: "Post not found." });
+        }
+
+        // Check if the user has already liked the post
+        const userLiked = post.likes.includes(userId);
 
         if (userLiked) {
             // If the user has already liked the post, remove the like
@@ -31,7 +41,8 @@ router.put('/', async function (req, res) {
                     liked: postId
                 }
             });
-            res.json({ success: true, status: "Like removed." });
+
+            return res.json({ success: true, status: "Like removed." });
         } else {
             // If the user hasn't liked the post, add the like
             await Post.findByIdAndUpdate(postId, {
@@ -46,12 +57,12 @@ router.put('/', async function (req, res) {
                     liked: postId
                 }
             });
-            res.json({ success: true, status: "post Liked." });
+
+            return res.json({ success: true, status: "Post Liked." });
         }
-    }
-    catch (err) {
-        console.log(err);
-        res.json({ success: false, status: "Something went wrong." });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, status: "Something went wrong." });
     }
 });
 

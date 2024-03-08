@@ -1,44 +1,49 @@
-import express from 'express'
-import User from '../../models/User.js'
+import express from 'express';
+import User from '../../models/User.js';
 
 const router = express.Router();
 
 router.put('/', async (req, res) => {
-
+    // Check if the request is authenticated with JWT
     if (!req.isAuthenticated()) {
-        return res.json({ success: false, status: 'Login to continue.' });
+        return res.status(401).json({ success: false, status: 'Login to continue.' });
     }
 
     const { userIdToFollow } = req.body;
 
     try {
-        const currentUser = await User.findById(req.user._id);
+        // Find the current user by userId
+        const currentUser = await User.findById(req.userId);
 
+        // Find the user to follow by userIdToFollow
         const userToFollow = await User.findById(userIdToFollow);
 
         if (!userToFollow) {
-            return res.json({ success: false, status: 'Something went wrong.' });
+            return res.status(404).json({ success: false, status: 'User not found.' });
         }
 
-        const isFollowing = req.user.following.includes(userToFollow._id);
+        // Check if the current user is already following the userToFollow
+        const isFollowing = currentUser.following.includes(userToFollow._id);
 
         if (isFollowing) {
+            // If already following, unfollow the user
             currentUser.following.pull(userToFollow._id);
             userToFollow.followers.pull(currentUser._id);
-        }
-
-        else {
+        } else {
+            // If not following, follow the user
             currentUser.following.push(userToFollow._id);
             userToFollow.followers.push(currentUser._id);
         }
 
+        // Save changes to both users
         await currentUser.save();
         await userToFollow.save();
 
-        res.json({ success: true, status: isFollowing ? `Unfollowed ${userToFollow.username}` : `Followed ${userToFollow.username}` });
+        // Return success response with appropriate message
+        return res.json({ success: true, status: isFollowing ? `Unfollowed ${userToFollow.username}` : `Followed ${userToFollow.username}` });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, status: 'Internal server error' });
+        return res.status(500).json({ success: false, status: 'Internal server error' });
     }
 });
 

@@ -7,6 +7,7 @@ const postSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true, // Indexing the author field for faster queries
     },
     type: {
         type: String,
@@ -17,30 +18,14 @@ const postSchema = new Schema({
         type: String,
         required: true,
     },
-    likes: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-        },
-    ],
-    saved: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-        },
-    ],
-    comments: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Comment"
-        }
-    ],
+    likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    saved: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
     createdAt: {
         type: Date,
         default: Date.now,
+        index: true, // Indexing the createdAt field for sorting and filtering
     },
-
-    //for searching.
     caption: {
         type: String,
         required: true,
@@ -48,45 +33,33 @@ const postSchema = new Schema({
     username: {
         type: String,
         required: true,
+        index: true, // Indexing the username field for faster queries
     },
     name: {
         type: String,
         required: true,
     },
-    tags: [String]
-});
+    tags: [{ type: String, index: true }], // Indexing the tags field for faster queries
+}, { timestamps: true }); // Adding timestamps for createdAt and updatedAt fields
 
-// Indexes
-postSchema.index({ username: 'text', name: 'text', caption: 'text', tags: 'text' });
-
-// Virtuals
+// Simplified virtual for calculating time passed since post creation
 postSchema.virtual('timePassed').get(function () {
-    const currentDate = new Date();
-    const postDate = this._id.getTimestamp();
+    const millisecondsPassed = Date.now() - this.createdAt.getTime();
+    const secondsPassed = Math.floor(millisecondsPassed / 1000);
 
-    const timeDifference = currentDate - postDate;
-
-    const seconds = Math.floor(timeDifference / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) {
-        return `${days}d`;
-    } else if (hours > 0) {
-        return `${hours}h`;
-    } else if (minutes > 0) {
-        return `${minutes}m`;
+    if (secondsPassed < 60) {
+        return `${secondsPassed}s`;
+    } else if (secondsPassed < 3600) {
+        return `${Math.floor(secondsPassed / 60)}m`;
+    } else if (secondsPassed < 86400) {
+        return `${Math.floor(secondsPassed / 3600)}h`;
     } else {
-        return `${seconds}s`;
+        return `${Math.floor(secondsPassed / 86400)}d`;
     }
 });
 
 // Ensure virtuals are included in JSON output
 postSchema.set('toJSON', { virtuals: true });
-
-// Ensure virtuals are included in Object output (e.g., res.send)
-postSchema.set('toObject', { virtuals: true });
 
 const Post = mongoose.models.Post || mongoose.model('Post', postSchema);
 

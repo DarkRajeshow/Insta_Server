@@ -1,20 +1,30 @@
-import express from 'express'
-import User from '../../models/User.js'
-import Post from '../../models/Post.js'
+import express from 'express';
+import User from '../../models/User.js';
+import Post from '../../models/Post.js';
 
 const router = express.Router();
-/* GET users listing. */
-router.put('/', async function (req, res) {
 
+/* PUT to save/unsave a post */
+router.put('/', async function (req, res) {
+    // Check if the request is authenticated with JWT
     if (!req.isAuthenticated()) {
-        res.json({ success: false, status: "To add the post, you must log in." })
+        return res.status(401).json({ success: false, status: "To save the post, you must log in." });
     }
 
     try {
+        // Extract userId from JWT payload
+        const userId = req.userId;
         const { postId } = req.body;
-        const userId = req.user._id;
+
+        // Find the post by postId
         const post = await Post.findById(postId);
-        const userSaved = post.saved.indexOf(userId) >= 0;
+        
+        if (!post) {
+            return res.status(404).json({ success: false, status: "Post not found." });
+        }
+
+        // Check if the user has already saved the post
+        const userSaved = post.saved.includes(userId);
 
         if (userSaved) {
             // If the user has already saved the post, remove the post
@@ -30,7 +40,8 @@ router.put('/', async function (req, res) {
                     saved: postId
                 }
             });
-            res.json({ success: true, status: "Removed successfully." });
+
+            return res.json({ success: true, status: "Post removed from saved." });
         } else {
             // If the user hasn't saved the post, add the post
             await Post.findByIdAndUpdate(postId, {
@@ -45,12 +56,12 @@ router.put('/', async function (req, res) {
                     saved: postId
                 }
             });
-            res.json({ success: true, status: "Saved successfully." });
+
+            return res.json({ success: true, status: "Post saved." });
         }
-    }
-    catch (err) {
-        console.log(err);
-        res.json({ success: false, status: "Something went wrong." });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, status: "Something went wrong." });
     }
 });
 

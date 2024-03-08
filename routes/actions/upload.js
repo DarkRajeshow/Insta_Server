@@ -1,44 +1,50 @@
-import express from 'express'
-import upload from '../../utility/multer.js'
-import User from '../../models/User.js'
-import Post from '../../models/Post.js'
+import express from 'express';
+import upload from '../../utility/multer.js';
+import User from '../../models/User.js';
+import Post from '../../models/Post.js';
 
 const router = express.Router();
 
 router.post('/', upload.single("file"), async function (req, res) {
+    // Check if the request is authenticated with JWT
     if (!req.isAuthenticated()) {
-        res.json({ success: false, status: "To upload the post, you must first log in." })
+        return res.status(401).json({ success: false, status: "To upload the post, you must first log in." });
     }
 
+    // Check if a file is provided
     if (!req.file) {
-        res.json({ success: false, status: "Media field is required." })
+        return res.status(400).json({ success: false, status: "Media field is required." });
     }
 
     try {
-        const { caption, type, username, name, tags } = req.body;
-
+        const { caption, type, tags } = req.body;
         const tagsArray = tags.split(",");
+
+        const user = await User.findById(req.userId);
+
+        // Create a new post
         const newPost = await Post.create({
             caption,
             type,
-            username,
-            name,
+            username: user.username,
+            name: user.name,
             tags: tagsArray,
-            author: req.user._id,
+            author: req.userId, // Use userId extracted from JWT payload
             media: req.file.filename,
         });
 
-        await User.findByIdAndUpdate(req.user._id, {
+        // Update the user's posts array
+        await User.findByIdAndUpdate(req.userId, {
             $push: {
                 posts: newPost._id
             }
-        })
+        });
 
-        res.json({ success: true, status: "The post has been created." })
+        return res.json({ success: true, status: "The post has been created." });
     }
     catch (err) {
-        console.log(err);
-        res.json({ success: false, status: "Sorry, something went wrong." })
+        console.error(err);
+        return res.status(500).json({ success: false, status: "Sorry, something went wrong." });
     }
 });
 
