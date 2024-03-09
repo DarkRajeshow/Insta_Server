@@ -33,7 +33,7 @@ export async function registerUser(req, res, next) {
             secure: isProduction,
             sameSite: isProduction ? 'strict' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            domain: process.env.CLIENT_DOMAIN,
+            domain: process.env.CLIENT_URL,
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -68,9 +68,7 @@ export async function loginUser(req, res, next) {
 
         const cookieOptions = {
             secure: isProduction,
-            sameSite: isProduction ? 'strict' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            domain: process.env.CLIENT_DOMAIN,
         };
 
         res.cookie('jwt', token, cookieOptions);
