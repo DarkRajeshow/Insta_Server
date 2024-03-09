@@ -1,5 +1,6 @@
 import express from 'express';
 import User from '../../models/User.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -13,7 +14,9 @@ router.put('/', async (req, res) => {
 
     try {
         // Find the current user by userId
-        const currentUser = await User.findById(req.userId);
+
+        const userId = await getUserId(req.cookies.jwt);
+        const currentUser = await User.findById(userId);
 
         // Find the user to follow by userIdToFollow
         const userToFollow = await User.findById(userIdToFollow);

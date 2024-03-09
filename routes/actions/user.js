@@ -5,6 +5,7 @@ import { Conversation, Message } from '../../models/Message.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import getUserId from '../../utility/getUserId.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,14 +15,16 @@ const router = express.Router();
 // Route to get user information
 router.get('/', async (req, res) => {
     try {
+
+        const userId = await getUserId(req.cookies.jwt);
         // Check if the request is authenticated with JWT
         if (!req.isAuthenticated()) {
-            console.log(req.userId);
+            console.log(userId);
             return res.json({ success: false, status: 'Login to continue.' });
         }
 
         const full = req.query.full;
-        const user = full === "true" ? await User.findById(req.userId).populate("posts") : await User.findById(req.userId);
+        const user = full === "true" ? await User.findById(userId).populate("posts") : await User.findById(userId);
 
 
         return res.json({ success: true, user });
@@ -38,8 +41,9 @@ router.get('/recentchats', async (req, res) => {
         if (!req.isAuthenticated()) {
             return res.json({ success: false, status: 'Login to continue.' });
         }
+        const userId = await getUserId(req.cookies.jwt);
 
-        const currentUser = await User.findById(req.userId);
+        const currentUser = await User.findById(userId);
         const conversations = await Conversation.find({ participants: currentUser._id })
             .populate('participants', 'bio username name dp');
 
@@ -102,8 +106,10 @@ router.put('/', upload.single("file"), async function (req, res) {
             return res.json({ success: false, status: "User session expired." });
         }
 
+        const userId = await getUserId(req.cookies.jwt);
+        
         const newUserData = req.body;
-        const user = await User.findById(req.userId);
+        const user = await User.findById(userId);
 
         // Check if there's a new profile image
         if (req.file) {
@@ -120,7 +126,7 @@ router.put('/', upload.single("file"), async function (req, res) {
                 }
             }
             // Update the user's profile with the new image filename
-            await User.findByIdAndUpdate(req.userId, {
+            await User.findByIdAndUpdate(userId, {
                 ...newUserData,
                 dp: req.file.filename,
             }, {
@@ -128,7 +134,7 @@ router.put('/', upload.single("file"), async function (req, res) {
             });
         } else {
             // If there's no new profile image, simply update the user's profile data
-            await User.findByIdAndUpdate(req.userId, newUserData, { new: true });
+            await User.findByIdAndUpdate(userId, newUserData, { new: true });
         }
 
         return res.json({ success: true, status: "Profile updated successfully." });

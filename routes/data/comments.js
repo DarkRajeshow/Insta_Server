@@ -1,7 +1,9 @@
+
 import express from 'express';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
 import Comment from '../../models/Comment.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -106,7 +108,7 @@ router.put('/like', async function (req, res) {
         }
 
         const { commentId } = req.body;
-        const userId = req.userId;
+        const userId = await getUserId(req.cookies.jwt);
         const comment = await Comment.findById(commentId);
         if (!comment) {
             return res.json({ success: false, status: 'Comment not found.' });

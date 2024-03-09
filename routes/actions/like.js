@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -14,12 +15,12 @@ router.put('/', async function (req, res) {
 
     try {
         // Extract userId from JWT payload
-        const userId = req.userId;
+        const userId = await getUserId(req.cookies.jwt);
         const { postId } = req.body;
 
         // Find the post by postId
         const post = await Post.findById(postId);
-        
+
         if (!post) {
             return res.status(404).json({ success: false, status: "Post not found." });
         }

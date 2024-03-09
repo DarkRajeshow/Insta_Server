@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.put('/', async function (req, res) {
 
     try {
         // Extract userId from JWT payload
-        const userId = req.userId;
+        const userId = await getUserId(req.cookies.jwt);;
         const { postId } = req.body;
 
         // Find the post by postId

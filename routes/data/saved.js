@@ -1,6 +1,7 @@
 import express from 'express';
 import Post from '../../models/Post.js';
 import User from '../../models/User.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -12,7 +13,9 @@ router.get('/:offset', async (req, res) => {
             return res.json({ success: false, status: "Log in to continue." });
         }
 
-        const currentUser = await User.findById(req.userId);
+        const userId = await getUserId(req.cookies.jwt);
+
+        const currentUser = await User.findById(userId);
         if (!currentUser) {
             return res.json({ success: false, status: "User not found." });
         }

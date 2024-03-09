@@ -1,6 +1,7 @@
 import express from 'express';
 import Notification from '../../models/Notification.js';
 import User from '../../models/User.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -50,8 +51,9 @@ router.put('/read', async (req, res) => {
 router.get('/all', async (req, res) => {
     if (req.isAuthenticated()) {
         try {
+            const userId = await getUserId(req.cookies.jwt);
             const notifications = await Notification.find({
-                recipient: req.userId
+                recipient: userId
             })
                 .populate("relatedUser", 'name dp')
                 .sort({
@@ -92,8 +94,9 @@ router.get('/unread/:userId', async (req, res) => {
 
 router.delete('/all', async (req, res) => {
     try {
-        await Notification.deleteMany({ recipient: req.userId });
-        await User.findByIdAndUpdate(req.userId, { notifications: [] });
+        const userId = await getUserId(req.cookies.jwt);
+        await Notification.deleteMany({ recipient: userId });
+        await User.findByIdAndUpdate(userId, { notifications: [] });
         res.json({ success: true, status: "Notifications cleared." });
     } catch (error) {
         console.error(error);

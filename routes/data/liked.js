@@ -1,6 +1,7 @@
 import express from 'express';
 import Post from '../../models/Post.js';
 import User from '../../models/User.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -12,7 +13,8 @@ router.get('/:offset', async (req, res) => {
 
         // Check if the request is authenticated with JWT
         if (req.isAuthenticated()) {
-            const currentUser = await User.findById(req.userId);
+            const userId = await getUserId(req.cookies.jwt);
+            const currentUser = await User.findById(userId);
             const likedPostIds = currentUser.liked;
 
             const likedPosts = await Post.find({ _id: { $in: likedPostIds } })

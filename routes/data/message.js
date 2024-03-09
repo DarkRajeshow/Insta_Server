@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../../models/User.js';
 import { Message, Conversation } from '../../models/Message.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.get('/:chatUser', async (req, res) => {
             return res.json({ success: false, status: "Login to continue." });
         }
 
-        const loggedUserId = req.userId;
+        const loggedUserId = await getUserId(req.cookies.jwt);
         const chatUserId = req.params.chatUser;
 
         // Check if the logged-in user exists
@@ -86,7 +87,7 @@ router.put('/save', async (req, res) => {
             return res.json({ success: false, status: "Login to continue." });
         }
 
-        const loggedUserId = req.userId;
+        const loggedUserId = await getUserId(req.cookies.jwt);
         const { sender, receiver, content } = req.body;
 
         const newMessage = new Message({

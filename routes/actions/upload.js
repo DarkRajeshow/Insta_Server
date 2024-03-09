@@ -2,6 +2,8 @@ import express from 'express';
 import upload from '../../utility/multer.js';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
+import getUserId from '../../utility/getUserId.js';
+
 
 const router = express.Router();
 
@@ -18,9 +20,11 @@ router.post('/', upload.single("file"), async function (req, res) {
 
     try {
         const { caption, type, tags } = req.body;
+
+        const userId = await getUserId(req.cookies.jwt);
         const tagsArray = tags.split(",");
 
-        const user = await User.findById(req.userId);
+        const user = await User.findById(userId);
 
         // Create a new post
         const newPost = await Post.create({
@@ -29,12 +33,12 @@ router.post('/', upload.single("file"), async function (req, res) {
             username: user.username,
             name: user.name,
             tags: tagsArray,
-            author: req.userId, // Use userId extracted from JWT payload
+            author: userId, // Use userId extracted from JWT payload
             media: req.file.filename,
         });
 
         // Update the user's posts array
-        await User.findByIdAndUpdate(req.userId, {
+        await User.findByIdAndUpdate(userId, {
             $push: {
                 posts: newPost._id
             }

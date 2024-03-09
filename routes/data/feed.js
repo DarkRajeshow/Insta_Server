@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
+import getUserId from '../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -12,7 +13,9 @@ router.get('/:offset', async (req, res) => {
 
         // Check if the request is authenticated with JWT
         if (req.isAuthenticated()) {
-            const currentUser = await User.findById(req.userId);
+
+            const userId = await getUserId(req.cookies.jwt);
+            const currentUser = await User.findById(userId);
             const followingIds = currentUser.following;
             let feedPosts = await Post.find({ author: { $in: followingIds } })
                 .sort({ createdAt: -1, likes: -1 })
@@ -21,7 +24,7 @@ router.get('/:offset', async (req, res) => {
                 .skip(offset * limit);
 
             if (feedPosts.length === 0) {
-                feedPosts = await Post.find({ author: { $ne: req.userId } })
+                feedPosts = await Post.find({ author: { $ne: userId } })
                     .sort({ likes: -1, createdAt: -1 })
                     .populate('author')
                     .limit(limit)

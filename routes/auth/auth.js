@@ -26,8 +26,7 @@ export async function registerUser(req, res, next) {
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        req.userId = user._id;
-        res.cookie('jwt', token, { httpOnly: true });
+        res.cookie('jwt', token);
         res.json({ success: true, status: 'User registered and logged in successfully', user });
     } catch (error) {
         console.error('Error registering user:', error);
@@ -54,10 +53,7 @@ export async function loginUser(req, res, next) {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         //small session to store userId 
-        req.userId = user._id.toString();
-        console.log(req.userId)
-        console.log(user._id)
-        res.cookie('jwt', token, { httpOnly: true });
+        res.cookie('jwt', token);
         res.json({ success: true, status: 'Login successful', user });
     } catch (error) {
         console.error('Error logging in:', error);

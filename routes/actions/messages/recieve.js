@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../../../models/User.js';
 import Message from '../../../models/Message.js';
+import getUserId from '../../../utility/getUserId.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.put('/receive', async (req, res) => {
     }
 
     try {
-        const loggedUserId = req.user._id;
+        const loggedUserId = await getUserId(req.cookies.jwt);
         const { sender, content } = req.body;
 
         // Create a new message document
@@ -40,7 +41,7 @@ router.put('/receive', async (req, res) => {
         );
 
         res.json({ success: true, status: "Message received successfully." });
-    } 
+    }
     catch (error) {
         console.error(error);
         res.json({ success: false, status: "Something went wrong." });
