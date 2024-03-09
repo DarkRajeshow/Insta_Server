@@ -31,9 +31,7 @@ export async function registerUser(req, res, next) {
 
         const cookieOptions = {
             secure: isProduction,
-            sameSite: isProduction ? 'strict' : 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            domain: process.env.CLIENT_URL,
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -81,7 +79,6 @@ export async function loginUser(req, res, next) {
 
 export async function logoutUser(req, res, next) {
     res.clearCookie('jwt');
-    delete req.userId;
     res.json({ success: true, status: 'Logged out successfully.' });
 }
 
@@ -91,8 +88,6 @@ export function isAuthenticated(req, res, next) {
         if (!jwtCookie) {
             req.isAuthenticated = () => false; // No JWT cookie present
         } else {
-            const decodedToken = jwt.verify(jwtCookie, process.env.JWT_SECRET);
-            req.userId = decodedToken.userId;
             req.isAuthenticated = () => true; // JWT cookie present and valid
         }
     } catch (error) {
