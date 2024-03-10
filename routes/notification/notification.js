@@ -60,9 +60,7 @@ router.get('/all', async (req, res) => {
                     timestamp: -1
                 });
 
-            console.log(notifications);
-
-            res.json({ success: true, notifications });
+                res.json({ success: true, notifications });
 
         } catch (error) {
             console.error(error);

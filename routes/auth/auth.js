@@ -31,7 +31,8 @@ export async function registerUser(req, res, next) {
 
         const cookieOptions = {
             secure: isProduction,
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            domain: process.env.CLIENT_DOMAIN
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -61,12 +62,13 @@ export async function loginUser(req, res, next) {
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-          // Determine if the environment is development or production
+        // Determine if the environment is development or production
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
             secure: isProduction,
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            domain: process.env.CLIENT_DOMAIN
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -113,6 +115,8 @@ export function isLoggedIn(req, res, next) {
 
 export function getUserId(req, res) {
     const jwtCookie = req.cookies.jwt;
+
+    console.log(jwtCookie);
     if (!jwtCookie) {
         return res.json({ success: false, status: "Login to continue." });
     }
