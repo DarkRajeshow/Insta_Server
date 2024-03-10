@@ -30,8 +30,7 @@ export async function registerUser(req, res, next) {
 
         const cookieOptions = {
             secure: isProduction,
-            domain: process.env.CLIENT_DOMAIN,
-            httpOnly: true
+            domain: process.env.CLIENT_DOMAIN
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -66,8 +65,7 @@ export async function loginUser(req, res, next) {
 
         const cookieOptions = {
             secure: isProduction,
-            domain: process.env.CLIENT_DOMAIN,
-            httpOnly: true
+            domain: process.env.CLIENT_DOMAIN
         };
 
         res.cookie('jwt', token, cookieOptions);
