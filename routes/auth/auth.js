@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import { hashPassword, comparePasswords } from './bcrypt.js';
-import { stringify } from 'uuid';
 
 export async function registerUser(req, res, next) {
     const { email, password, username, name, gender } = req.body;
@@ -24,15 +23,15 @@ export async function registerUser(req, res, next) {
 
         await user.save();
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
         // Determine if the environment is development or production
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
             secure: isProduction,
-            httpOnly: true,
-            domain: process.env.CLIENT_DOMAIN
+            domain: process.env.CLIENT_DOMAIN,
+            httpOnly: true
         };
 
         res.cookie('jwt', token, cookieOptions);
@@ -60,15 +59,15 @@ export async function loginUser(req, res, next) {
             return res.json({ success: false, status: 'Invalid username or password' });
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
         // Determine if the environment is development or production
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
             secure: isProduction,
-            httpOnly: true,
-            domain: process.env.CLIENT_DOMAIN
+            domain: process.env.CLIENT_DOMAIN,
+            httpOnly: true
         };
 
         res.cookie('jwt', token, cookieOptions);
