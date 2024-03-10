@@ -26,7 +26,7 @@ export async function registerUser(req, res, next) {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
         // Determine if the environment is development or production
-        const isProduction = process.env.NODE_ENV === 'production';
+        const isProduction = process.env.NODE_ENV !== 'development';
 
         const cookieOptions = {
             secure: isProduction,
