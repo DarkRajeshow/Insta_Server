@@ -23,18 +23,21 @@ export async function registerUser(req, res, next) {
 
         await user.save();
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        // Determine if the environment is development or production
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "15d"
+        });
 
         // Determine if the environment is development or production
-        const isProduction = process.env.NODE_ENV !== 'development';
+        const isProduction = process.env.CLIENT_DOMAIN !== 'localhost';
 
-        const cookieOptions = {
+        res.cookie('jwt', token, {
+            maxAge: 15 * 24 * 60 * 60 * 1000,
             secure: isProduction,
-            domain: process.env.CLIENT_DOMAIN
-        };
-
-        res.cookie('jwt', token, cookieOptions);
-
+            httpOnly: true,
+            domain: process.env.CLIENT_DOMAIN,
+            sameSite: "strict"
+        });
         res.json({ success: true, status: 'User registered and logged in successfully', user });
     } catch (error) {
         console.error('Error registering user:', error);
@@ -58,17 +61,20 @@ export async function loginUser(req, res, next) {
             return res.json({ success: false, status: 'Invalid username or password' });
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "15d"
+        });
 
         // Determine if the environment is development or production
-        const isProduction = process.env.NODE_ENV === 'production';
+        const isProduction = process.env.CLIENT_DOMAIN !== 'localhost';
 
-        const cookieOptions = {
+        res.cookie('jwt', token, {
+            maxAge: 15 * 24 * 60 * 60 * 1000,
             secure: isProduction,
-            domain: process.env.CLIENT_DOMAIN
-        };
-
-        res.cookie('jwt', token, cookieOptions);
+            httpOnly: true,
+            domain: process.env.CLIENT_DOMAIN,
+            sameSite: "strict"
+        });
         res.json({ success: true, status: 'Login successful', user });
     } catch (error) {
         console.error('Error logging in:', error);
