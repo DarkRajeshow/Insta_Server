@@ -35,7 +35,6 @@ export async function registerUser(req, res, next) {
             maxAge: 15 * 24 * 60 * 60 * 1000,
             secure: isProduction,
             httpOnly: true,
-            domain: process.env.CLIENT_DOMAIN,
             sameSite: "strict"
         });
         res.json({ success: true, status: 'User registered and logged in successfully', user });
@@ -72,7 +71,6 @@ export async function loginUser(req, res, next) {
             maxAge: 15 * 24 * 60 * 60 * 1000,
             secure: isProduction,
             httpOnly: true,
-            domain: process.env.CLIENT_DOMAIN,
             sameSite: "strict"
         });
         res.json({ success: true, status: 'Login successful', user });
