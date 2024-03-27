@@ -3,6 +3,7 @@ import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 import cors from 'cors';
 import { isAuthenticated, isLoggedIn, loginUser, logoutUser, registerUser, getUserId } from './routes/auth/auth.js';
 
@@ -36,6 +37,8 @@ import cookieParser from 'cookie-parser';
 // Configuring environment variables
 dotenv.config();
 
+const __dirname = path.resolve();
+
 const PORT = process.env.PORT;
 const app = express();
 
@@ -57,6 +60,15 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/api/uploads", express.static("public/uploads"));
+
+
+
+// // for frontend code rendering
+// app.use(express.static(path.join(__dirname, '/client/dist')));
+
+// app.get("*", (req, res) => {
+//     res.sendFile(path.join(__dirname, "client", "dist", "index.html"))
+// })
 
 // API routes
 // Auth
@@ -90,6 +102,7 @@ app.use("/api/search", searchRouter);
 
 // notifications
 app.use("/api/notifications", notificationRouter);
+
 
 // special queries
 app.use("/api/special", specialRouter);

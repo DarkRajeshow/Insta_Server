@@ -35,8 +35,10 @@ router.post('/:postId', async (req, res) => {
             return res.json({ success: false, status: "Login to continue." });
         }
 
+        const userId = await getUserId(req.cookies.jwt);
+
         const comment = await Comment.create({
-            author: req.userId,
+            author: userId,
             post: postId,
             text: text
         });

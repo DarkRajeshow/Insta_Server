@@ -67,6 +67,13 @@ export async function loginUser(req, res, next) {
         // Determine if the environment is development or production
         const isProduction = process.env.CLIENT_DOMAIN !== 'localhost';
 
+        console.log({
+            maxAge: 15 * 24 * 60 * 60 * 1000,
+            secure: isProduction,
+            httpOnly: true,
+            sameSite: "strict"
+        });
+        
         res.cookie('jwt', token, {
             maxAge: 15 * 24 * 60 * 60 * 1000,
             secure: isProduction,
